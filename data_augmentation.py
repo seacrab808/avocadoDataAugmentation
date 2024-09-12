@@ -30,10 +30,10 @@ fileName = os.path.join(dataOrg, 'org_white.jpg')
 
 img = cv2.imread(fileName)
 
-# 이미지 Resize 함수
-def imgResize(img):
-    img_resize = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
-    return img_resize
+# 이미지 Resize
+IMG = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
+
+# 여기서부터 함수는 다 만들고 각자 폴더별로 저장하는 기능도 추가할 예정(폴더별 저장 기능 함수 따로 만들어서 내에서 호출)
 
 # 랜덤으로 crop하는 함수
 # : sizing에는 몇 배의 크기로 할지 0.1부터 0.9배까지 지정 가능. 0.8로 사용할 예정
@@ -56,9 +56,20 @@ def randomCrop(img, sizing):
     
     return cropped_img
 
-# hfilp 함수
+# hfilp 함수(좌우 반전)
+def hFlip(img):
+    flipped_img = cv2.flip(img, 1)
+    return flipped_img
 
-# vfilp 함수
+# vfilp 함수(상하 반전)
+def vFlip(img):
+    flipped_img = cv2.flip(img, 0)
+    return flipped_img
+
+# 좌우, 상하 반전
+def vhFlip(img):
+    flipped_img = cv2.flip(hFlip(img), 0)
+    return flipped_img
 
 # rotate 함수
 
@@ -67,8 +78,11 @@ def randomCrop(img, sizing):
 # color shifting 함수
 
 
-# 이미지 show 함수
-cv2.imshow('random crop', randomCrop(img, 0.8))
+# 이미지 show 함수(테스트용)
+cv2.imshow('org', IMG)
+cv2.imshow('h', hFlip(IMG))
+cv2.imshow('v', vFlip(IMG))
+cv2.imshow('h+v', vhFlip(IMG))
 
 
 
