@@ -18,3 +18,59 @@
 # 7. 테스트(경우의 수)
 # 8. 데이터셋을 teachable machine 사이트에 올려서 테스트
 # 9. 인식이 잘 안 되는 케이스를 분석하고 케이스 추가 1~8에서 구현된 기능을 이용
+
+import cv2, sys
+import numpy as np
+import os
+import random
+
+# dataPath = os.path.join(os.getcwd(), 'data_augmentation')
+dataOrg = os.path.join(os.getcwd(), 'org')
+fileName = os.path.join(dataOrg, 'org_white.jpg')
+
+img = cv2.imread(fileName)
+
+# 이미지 Resize 함수
+def imgResize(img):
+    img_resize = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
+    return img_resize
+
+# 랜덤으로 crop하는 함수
+# : sizing에는 몇 배의 크기로 할지 0.1부터 0.9배까지 지정 가능. 0.8로 사용할 예정
+def randomCrop(img, sizing):
+    height, width, _ = img.shape
+    
+    # 이ㅑ미지 크기의 비율로 자를 크기 설정
+    crop_height = random.randint(int(height * sizing), int(height * sizing))
+    crop_width = random.randint(int(width * sizing), int(width * sizing))
+    
+    if height < crop_height or width < crop_width:
+        raise ValueError("자르려는 사이즈가 이미지보다 큽니다.")
+    
+    # 랜덤으로 crop할 좌표 선택
+    x = random.randint(0, width - crop_width)
+    y = random.randint(0, height - crop_height)
+    
+    # 이미지 자르기
+    cropped_img = img[y:y+crop_height, x:x+crop_width]
+    
+    return cropped_img
+
+# hfilp 함수
+
+# vfilp 함수
+
+# rotate 함수
+
+# contrast 함수
+
+# color shifting 함수
+
+
+# 이미지 show 함수
+cv2.imshow('random crop', randomCrop(img, 0.8))
+
+
+
+cv2.waitKey()
+cv2.destroyAllWindows()
