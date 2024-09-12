@@ -28,7 +28,7 @@ import random
 dataOrg = os.path.join(os.getcwd(), 'org')
 fileName = os.path.join(dataOrg, 'org_white.jpg')
 
-img = cv2.imread(fileName)
+img = cv2.imread('org/org_white.jpg')
 
 if img is None:
     sys.exit("이미지를 불러오지 못했습니다.")
@@ -40,24 +40,31 @@ IMG = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
 
 # 랜덤으로 crop하는 함수
 # : sizing에는 몇 배의 크기로 할지 0.1부터 0.9배까지 지정 가능. 0.8로 사용할 예정
-def randomCrop(img, sizing):
+def randomCrop(img, sizing, num_crops=10):
     height, width, _ = img.shape
+    crops = []
+
+    for _ in range(num_crops):
+        # 이미지 크기의 비율로 자를 크기 설정
+        crop_height = random.randint(int(height * sizing), height)
+        crop_width = random.randint(int(width * sizing), width)
+
+        if height < crop_height or width < crop_width:
+            raise ValueError("자르려는 사이즈가 이미지보다 큽니다.")
+
+        # 랜덤으로 crop할 좌표 선택
+        x = random.randint(0, width - crop_width)
+        y = random.randint(0, height - crop_height)
+
+        # 이미지 자르기
+        cropped_img = img[y:y+crop_height, x:x+crop_width]
+        crops.append(cropped_img)
+        
+        # 크롭된 이미지를 저장
+        createFile('org_white', 'randomCrop', crops)
     
-    # 이미지 크기의 비율로 자를 크기 설정
-    crop_height = random.randint(int(height * sizing), int(height * sizing))
-    crop_width = random.randint(int(width * sizing), int(width * sizing))
-    
-    if height < crop_height or width < crop_width:
-        raise ValueError("자르려는 사이즈가 이미지보다 큽니다.")
-    
-    # 랜덤으로 crop할 좌표 선택
-    x = random.randint(0, width - crop_width)
-    y = random.randint(0, height - crop_height)
-    
-    # 이미지 자르기
-    cropped_img = img[y:y+crop_height, x:x+crop_width]
-    
-    return cropped_img
+    return crops
+
 
 # hfilp 함수(좌우 반전)
 def hFlip(img):
@@ -117,13 +124,33 @@ def colorShifting(img, shift_value=50):
     
     return shifted_img
 
+# 파일을 생성하는 함수(공통으로 적용할거임)
+def createFile(filePath, folderName, arr):
+    # param filePath: 저장된 파일 경로 (문자열)
+    # param folderName : 파일 이름 (문자열)
+    # param funcName : 함수의 이름 (문자열)
+    # param arr: 저장할 이미지 데이터 (Numpy 배열)
+    
+    # 폴더가 없으면 생성
+    if not os.path.exists(folderName):
+        os.makedirs(folderName)
+    
+    # 각 이미지에 대해 파일 이름 생성 및 저장
+    for i, image in enumerate(arr):
+        # 파일 이름 생성
+        output_path = os.path.join(folderName, f"{filePath}_{folderName}_{i}.jpg")
+        
+        # 이미지 저장
+        if cv2.imwrite(output_path, image):
+            print(f"파일이 성공적으로 저장되었습니다: {output_path}")
+        else:
+            print(f"파일 저장에 실패했습니다: {output_path}")
+    
 # 이미지 show 함수(테스트용)
-cv2.imshow('org', IMG)
-cv2.imshow('rotate', colorShifting(IMG))
+# cv2.imshow('org', IMG)
+# cv2.imshow('color shifting', colorShifting(IMG))
 
-
-
-
+randomCrop(IMG, 0.8)
 
 cv2.waitKey()
 cv2.destroyAllWindows()
