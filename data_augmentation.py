@@ -30,6 +30,9 @@ fileName = os.path.join(dataOrg, 'org_white.jpg')
 
 img = cv2.imread(fileName)
 
+if img is None:
+    sys.exit("이미지를 불러오지 못했습니다.")
+
 # 이미지 Resize
 IMG = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
 
@@ -40,7 +43,7 @@ IMG = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
 def randomCrop(img, sizing):
     height, width, _ = img.shape
     
-    # 이ㅑ미지 크기의 비율로 자를 크기 설정
+    # 이미지 크기의 비율로 자를 크기 설정
     crop_height = random.randint(int(height * sizing), int(height * sizing))
     crop_width = random.randint(int(width * sizing), int(width * sizing))
     
@@ -72,17 +75,30 @@ def vhFlip(img):
     return flipped_img
 
 # rotate 함수
+def rotate(img, angle):
+    # 이미지의 중심 좌표 구하기
+    height, width = img.shape[:2]
+    center = (width // 2, height // 2)
+    
+    # 회전 행렬 생성 (이미지 중심 기준으로 회전)
+    rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
+    
+    # 회전 적용
+    rotated_img = cv2.warpAffine(img, rotation_matrix, (width, height), borderMode=cv2.BORDER_REPLICATE)
+    
+    return rotated_img
 
 # contrast 함수
+
 
 # color shifting 함수
 
 
 # 이미지 show 함수(테스트용)
 cv2.imshow('org', IMG)
-cv2.imshow('h', hFlip(IMG))
-cv2.imshow('v', vFlip(IMG))
-cv2.imshow('h+v', vhFlip(IMG))
+cv2.imshow('rotate', rotate(IMG, 90))
+
+
 
 
 
