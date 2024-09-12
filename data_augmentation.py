@@ -40,6 +40,7 @@ IMG = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
 
 # 랜덤으로 crop하는 함수
 # : sizing에는 몇 배의 크기로 할지 0.1부터 0.9배까지 지정 가능. 0.8로 사용할 예정
+# 일단 10개를 저장하는 함수..num_crops에서 저장하고 싶은 개수를 정할 수 있다
 def randomCrop(img, sizing, num_crops=10):
     height, width, _ = img.shape
     crops = []
@@ -65,64 +66,100 @@ def randomCrop(img, sizing, num_crops=10):
     
     return crops
 
-
+# 반전들은 결과가 1개라서 []를 씌워줘야 함
 # hfilp 함수(좌우 반전)
 def hFlip(img):
     flipped_img = cv2.flip(img, 1)
+    
+    # 플립된 이미지를 저장
+    createFile('org_white', 'hFlip', [flipped_img])
+        
     return flipped_img
 
 # vfilp 함수(상하 반전)
 def vFlip(img):
     flipped_img = cv2.flip(img, 0)
+    
+    # 플립된 이미지를 저장
+    createFile('org_white', 'vFlip', [flipped_img])
+    
     return flipped_img
 
 # 좌우, 상하 반전
 def vhFlip(img):
     flipped_img = cv2.flip(hFlip(img), 0)
+    
+    # 플립된 이미지를 저장
+    createFile('org_white', 'vhFlip', [flipped_img])
+    
     return flipped_img
 
 # rotate 함수
-def rotate(img, angle):
+# 10도부터 350도까지 저장
+def rotate(img):
+    rotated_images = []
+    
     # 이미지의 중심 좌표 구하기
     height, width = img.shape[:2]
     center = (width // 2, height // 2)
     
-    # 회전 행렬 생성 (이미지 중심 기준으로 회전)
-    rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
+    for angle in range(10, 360, 10):
+        # 회전 행렬 생성 (이미지 중심 기준으로 회전)
+        rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
+        
+        # 회전 적용
+        rotated_img = cv2.warpAffine(img, rotation_matrix, (width, height), borderMode=cv2.BORDER_REPLICATE)
+        rotated_images.append(rotated_img)
     
-    # 회전 적용
-    rotated_img = cv2.warpAffine(img, rotation_matrix, (width, height), borderMode=cv2.BORDER_REPLICATE)
+    # 회전된 이미지를 저장
+    createFile('org_white', 'rotate', rotated_images)
     
-    return rotated_img
+    return rotated_images
 
 # contrast 함수
-# 0.5 ~ 1.5 사이 추천
-def contrast(img, alpha):
+# 0.5 ~ 1.5 사이 저장
+def contrast(img):
     # param alpha : 대비 조정 비율 (1.0은 원본, 1.0 이상은 대비 증가, 1.0 이하는 대비 감소)
     
-    # 이미지를 float32로 변환하여 계산 후 다시 unit8로 변환
-    # 이미지 처리에서 더 높은 정확도를 위함. 
-    # unit8은 0~255범위(소수점을 버리는 정수형 -> 계산 오차 발생 가능성)
-    # float32는 소수점까지 계산하여 더 정밀한 결과를 제공
-    adjusted = cv2.convertScaleAbs(img, alpha=alpha, beta=0)
-    return adjusted
+    contrasts = []
+    
+    for i in range(5, 15, 1):
+        # 이미지를 float32로 변환하여 계산 후 다시 unit8로 변환
+        # 이미지 처리에서 더 높은 정확도를 위함. 
+        # unit8은 0~255범위(소수점을 버리는 정수형 -> 계산 오차 발생 가능성)
+        # float32는 소수점까지 계산하여 더 정밀한 결과를 제공
+        adjusted = cv2.convertScaleAbs(img, alpha=(i/10), beta=0)
+        contrasts.append(adjusted)
+        
+    # 보정된 이미지를 저장
+    createFile('org_white', 'contrast', contrasts)
+    
+    return contrasts
 
 # color shifting 함수
-def colorShifting(img, shift_value=50):
+# 10 ~ 50 사이 저장
+def colorShifting(img):
     # param shift_value : 각 채널을 얼마나 이동시킬지 설정하는 값(양수, 음수 가능)
     
-    # 이미지 복사
-    shifted_img = img.astype(np.int32)
+    shifted_images = []
     
-    # 각 채널에 대해 랜덤하게 값 더하기 또는 빼기
-    for i in range(3):  # 0: Blue, 1: Green, 2: Red
-        shift = random.randint(-shift_value, shift_value)  # -shift_value ~ shift_value 범위
-        shifted_img[:, :, i] = np.clip(shifted_img[:, :, i] + shift, 0, 255)
+    for value in range(10, 60, 10):
+        # 이미지 복사 및 int32로 변환
+        shifted_img = img.astype(np.int32)
         
-     # 다시 uint8로 변환
-    shifted_img = shifted_img.astype(np.uint8)
+        # 각 채널에 대해 랜덤하게 값 더하기 또는 빼기
+        for i in range(3):  # 0: Blue, 1: Green, 2: Red
+            shift = random.randint(-value, value)  # -value ~ value 범위
+            shifted_img[:, :, i] = np.clip(shifted_img[:, :, i] + shift, 0, 255)
+        
+        # 다시 uint8로 변환
+        shifted_img = shifted_img.astype(np.uint8)
+        
+        shifted_images.append(shifted_img)
     
-    return shifted_img
+    createFile('org_white', 'colorShifting', shifted_images)
+    
+    return shifted_images
 
 # 파일을 생성하는 함수(공통으로 적용할거임)
 def createFile(filePath, folderName, arr):
@@ -150,7 +187,7 @@ def createFile(filePath, folderName, arr):
 # cv2.imshow('org', IMG)
 # cv2.imshow('color shifting', colorShifting(IMG))
 
-randomCrop(IMG, 0.8)
+colorShifting(IMG)
 
 cv2.waitKey()
 cv2.destroyAllWindows()
