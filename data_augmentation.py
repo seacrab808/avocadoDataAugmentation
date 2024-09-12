@@ -89,14 +89,37 @@ def rotate(img, angle):
     return rotated_img
 
 # contrast 함수
-
+# 0.5 ~ 1.5 사이 추천
+def contrast(img, alpha):
+    # param alpha : 대비 조정 비율 (1.0은 원본, 1.0 이상은 대비 증가, 1.0 이하는 대비 감소)
+    
+    # 이미지를 float32로 변환하여 계산 후 다시 unit8로 변환
+    # 이미지 처리에서 더 높은 정확도를 위함. 
+    # unit8은 0~255범위(소수점을 버리는 정수형 -> 계산 오차 발생 가능성)
+    # float32는 소수점까지 계산하여 더 정밀한 결과를 제공
+    adjusted = cv2.convertScaleAbs(img, alpha=alpha, beta=0)
+    return adjusted
 
 # color shifting 함수
-
+def colorShifting(img, shift_value=50):
+    # param shift_value : 각 채널을 얼마나 이동시킬지 설정하는 값(양수, 음수 가능)
+    
+    # 이미지 복사
+    shifted_img = img.astype(np.int32)
+    
+    # 각 채널에 대해 랜덤하게 값 더하기 또는 빼기
+    for i in range(3):  # 0: Blue, 1: Green, 2: Red
+        shift = random.randint(-shift_value, shift_value)  # -shift_value ~ shift_value 범위
+        shifted_img[:, :, i] = np.clip(shifted_img[:, :, i] + shift, 0, 255)
+        
+     # 다시 uint8로 변환
+    shifted_img = shifted_img.astype(np.uint8)
+    
+    return shifted_img
 
 # 이미지 show 함수(테스트용)
 cv2.imshow('org', IMG)
-cv2.imshow('rotate', rotate(IMG, 90))
+cv2.imshow('rotate', colorShifting(IMG))
 
 
 
